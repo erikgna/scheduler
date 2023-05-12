@@ -1,0 +1,2 @@
+[print_schema]
+file = "src/schemas/*.rs"
