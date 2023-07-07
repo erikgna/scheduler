@@ -22,6 +22,7 @@ use std::process::Command;
 mod db;
 mod routes;
 mod models;
+mod enums;
 mod schema;
 
 fn rocket() -> rocket::Rocket {

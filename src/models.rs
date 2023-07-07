@@ -1,8 +1,9 @@
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use argon2::Config;
-use rand::Rng;
+use rand::{Rng, distributions::Alphanumeric};
+use argon2::{Config, hash_encoded, verify_encoded};
+use super::enums::{LoginResult};
 use super::schema::users;
 // this is to get users from the database
 #[derive(Serialize, Queryable)] 
@@ -32,46 +33,54 @@ pub struct NewUser {
 }
 
 impl User {
-    pub fn insert_user(mut user: NewUser, conn: &PgConnection) -> bool {
-        user.password = User::hash_password(user.password).unwrap();
+    pub fn insert_user(mut user: NewUser, conn: &PgConnection) -> Result<(), diesel::result::Error> {
+        let pass = User::hash_password(&user.password);
+        user.password = pass.unwrap();
 
         match diesel::insert_into(users::table)
-        .values(&user)
-        .execute(conn) {
-            Ok(_) => true,
+            .values(&user)
+            .execute(conn)
+        {
+            Ok(_) => Ok(()),
             Err(error) => {
-                    println!("Error inserting user: {:?}", error);
-                    false
+                println!("Error inserting user: {:?}", error);
+                Err(error)
             }
         }
     }
 
-    pub fn login(auth: UserData, conn: &PgConnection) -> Result<bool, bool>  {
-        use crate::schema::users::dsl::*;
-
-        let user = users.filter(email.eq(auth.email)).first::<User>(conn);
-
-        let password_match = User::verify_password(&auth.password, user.unwrap().password.as_bytes());
-
-        if password_match {
-            Ok(true)
+    pub fn verify_password(password: &str, password_encoded: &[u8]) -> bool {
+        print!("password: {:?}, password_encoded: {:?}", password, password_encoded);
+        if let Ok(result) = verify_encoded(password, password_encoded) {
+            result
         } else {
-            println!("Password is incorrect");
-            Err(false)
+            false
         }
     }
-
-    pub fn hash_password(password: String) -> Option<String> {
-        let salt: [u8; 32] = rand::thread_rng().gen();
+    
+    pub fn login(auth: UserData, conn: &PgConnection) -> Result<LoginResult, diesel::result::Error> {
+        use crate::schema::users::dsl::*;
+    
+        if let Some(user) = users.filter(email.eq(&auth.email)).first::<User>(conn).optional()? {
+            if User::verify_password(&auth.password, user.password.as_bytes()) {
+                Ok(LoginResult::Success)
+            } else {
+                Ok(LoginResult::IncorrectPassword)
+            }
+        } else {
+            Ok(LoginResult::UserNotFound)
+        }
+    }
+    
+    pub fn hash_password(password: &str) -> Result<String, argon2::Error> {
+        let salt: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(32)
+            .map(char::from)
+            .collect();
+    
         let config = Config::default();
-
-        match argon2::hash_encoded(password.as_bytes(), &salt, &config){
-            Ok(hash) => Some(hash),
-            Err(_) => None,
-        }
-    }
-
-    pub fn verify_password(password: &str, passwordEncoded: &[u8]) -> bool {
-        argon2::verify_encoded(password, passwordEncoded).is_ok()
+    
+        hash_encoded(password.as_bytes(), salt.as_bytes(), &config)
     }
 }
