@@ -1,6 +1,6 @@
 use super::db::Conn as DbConn;
 use rocket_contrib::json::{Json, JsonValue};
-use super::models::{User, NewUser};
+use super::models::{User, NewUser, UserData};
 use serde_json::Value;
 
 #[post("/newUser", format = "application/json", data = "<new_user>")]
@@ -11,9 +11,9 @@ pub fn new_user(conn: DbConn, new_user: Json<NewUser>) -> Json<Value> {
     }))
 }
 
-#[post("/getUser", format = "application/json", data = "<email>")]
-pub fn find_user(conn: DbConn, email: Json<String>) -> JsonValue {
-    let result = match User::get_user_by_email(&email, &conn) {
+#[post("/login", format = "application/json", data = "<user_data>")]
+pub fn login(conn: DbConn, user_data: Json<UserData>) -> JsonValue {
+    let result = match User::login(user_data.into_inner(), &conn) {
         Ok(user) => {
             json!({
                 "status": 200,

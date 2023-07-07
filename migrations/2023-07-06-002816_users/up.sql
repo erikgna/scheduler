@@ -5,5 +5,5 @@ CREATE TABLE users
     first_name   VARCHAR NOT NULL,
     last_name   VARCHAR NOT NULL,
     password   VARCHAR NOT NULL,
-    token   VARCHAR NOT NULL
+    token   VARCHAR
 )

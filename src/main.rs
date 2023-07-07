@@ -15,7 +15,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use dotenv::dotenv;
-use routes::{static_rocket_route_info_for_find_user, static_rocket_route_info_for_new_user};
+use routes::{static_rocket_route_info_for_login, static_rocket_route_info_for_new_user};
 use std::env;
 use std::process::Command;
 
@@ -34,7 +34,7 @@ fn rocket() -> rocket::Rocket {
         .manage(pool)
         .mount(
             "/api/v1/",
-            routes![new_user, find_user],
+            routes![new_user, login],
         )
 }
 
