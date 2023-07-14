@@ -15,42 +15,28 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use dotenv::dotenv;
-use routes::{static_rocket_route_info_for_login, static_rocket_route_info_for_new_user};
+use middleware::AuthMiddleware;
+use routes::{teste, login, new_user};
 use std::env;
-use std::process::Command;
 
 mod db;
 mod routes;
 mod models;
 mod enums;
 mod schema;
+mod middleware;
 
-fn rocket() -> rocket::Rocket {
+#[rocket::launch]
+fn rocket() -> _ {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("set DATABASE_URL");
 
     let pool = db::init_pool(database_url);
-    rocket::ignite()
+    rocket::build()
         .manage(pool)
         .mount(
             "/api/v1/",
             routes![new_user, login],
-        )
-}
-
-fn main() {
-    let _output = if cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .args(&["/C", "cd ui && npm start"])
-            .spawn()
-            .expect("Failed to start UI Application")
-    } else {
-        Command::new("sh")
-            .arg("-c")
-            .arg("cd ui && npm start")
-            .spawn()
-            .expect("Failed to start UI Application")
-    };
-    rocket().launch();
+        ).attach(AuthMiddleware).mount("/api/v1", routes![teste])
 }
