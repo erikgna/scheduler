@@ -12,13 +12,11 @@ extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
 
-use middleware::AuthMiddleware;
-use routes::{login, teste};
+use routes::{login, teste, register};
 
 mod db;
 mod routes;
 mod models;
-mod enums;
 mod schema;
 mod middleware;
 mod user_models;
@@ -26,7 +24,5 @@ mod user_models;
 #[rocket::launch]
 fn rocket() -> _ {    
     rocket::build()
-    // .mount("/api/v1/", routes![new_user, login])
-    // .attach(AuthMiddleware)
-    .mount("/api/v1", routes![teste, login])
+    .mount("/api/v1/", routes![register, login, teste])
 }
