@@ -1,10 +1,9 @@
 use diesel;
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use argon2::{Config, hash_encoded};
 use rand::Rng;
 use rand::distributions::Alphanumeric;
-use super::enums::LoginResult;
+use crate::{db::establish_connection, user_models::UserLogin};
 use super::schema::users;
 use jsonwebtoken::{encode, Header, EncodingKey};
 // this is to get users from the database
@@ -40,7 +39,9 @@ struct Claims {
 }
 
 impl User {
-    pub fn insert_user(mut user: NewUser, conn: &PgConnection) -> Result<(), diesel::result::Error> {
+    pub fn insert_user(mut user: NewUser) -> Result<(), diesel::result::Error> {
+        let conn = &mut establish_connection();
+
         let pass = User::hash_password(&user.password);
         user.password = pass.unwrap();
 
@@ -60,8 +61,9 @@ impl User {
         argon2::verify_encoded(password, password_encoded).unwrap()
     }
     
-    pub fn login(auth: UserData, conn: &PgConnection) -> Result<String, diesel::result::Error> {
+    pub fn login(auth: UserLogin) -> Result<String, diesel::result::Error> {
         use crate::schema::users::dsl::*;
+        let conn = &mut establish_connection();        
     
         if let Some(user) = users.filter(email.eq(&auth.email)).first::<User>(conn).optional()? {
             if User::verify_password(&user.password, auth.password.as_bytes()) {

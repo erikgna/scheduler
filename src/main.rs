@@ -11,13 +11,9 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate serde_json;
 
-use dotenv::dotenv;
 use middleware::AuthMiddleware;
-use routes::{teste, login, new_user};
-use std::env;
+use routes::{login, teste};
 
 mod db;
 mod routes;
@@ -25,18 +21,12 @@ mod models;
 mod enums;
 mod schema;
 mod middleware;
+mod user_models;
 
 #[rocket::launch]
-fn rocket() -> _ {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("set DATABASE_URL");
-
-    let pool = db::init_pool(database_url);
+fn rocket() -> _ {    
     rocket::build()
-        .manage(pool)
-        .mount(
-            "/api/v1/",
-            routes![new_user, login],
-        ).attach(AuthMiddleware).mount("/api/v1", routes![teste])
+    // .mount("/api/v1/", routes![new_user, login])
+    // .attach(AuthMiddleware)
+    .mount("/api/v1", routes![teste, login])
 }
