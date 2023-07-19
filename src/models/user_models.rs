@@ -1,6 +1,21 @@
-use rocket::serde::{Deserialize, Serialize};
-use diesel::Insertable;
-use super::schema::users;
+use crate::schema::users;
+
+#[derive(Serialize, Queryable)] 
+pub struct User {
+    pub id: i32,
+    pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub password: String,
+    pub token: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub id: i32,        // ID do usuário
+    pub email: String,  // Email do usuário
+    pub exp: usize
+}
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -43,4 +58,8 @@ impl From<NewUser> for NewUserInsert {
             password: user.password,
         }
     }
+}
+
+pub struct AuthorizedUser {
+    pub user_id: String,
 }

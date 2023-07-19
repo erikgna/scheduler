@@ -11,18 +11,38 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
+use rocket::serde::json::Json;
 
-use routes::{login, teste, register};
+use crate::routes::routes::authorization::{login, register, teste};
+use crate::error_response::error_responses::{
+    ErrorResponse, NOT_FOUND_JSON, UNAUTHORIZED_JSON, UNKNOWN_JSON,
+};
 
-mod db;
-mod routes;
-mod models;
-mod schema;
-mod middleware;
-mod user_models;
+pub mod db;
+pub mod routes;
+pub mod schema;
+pub mod controllers;
+pub mod models;
+pub mod error_response;
 
 #[rocket::launch]
-fn rocket() -> _ {    
+fn rocket() -> _ {        
     rocket::build()
-    .mount("/api/v1/", routes![register, login, teste])
+    .mount("/api/v1/", routes![register, login, teste])    
+    .register("/", catchers![unauthorized, not_found, internal_sever_error])
+}
+
+#[catch(401)]
+pub fn unauthorized() -> Json<ErrorResponse> {
+    Json(UNAUTHORIZED_JSON)
+}
+
+#[catch(404)]
+pub fn not_found() -> Json<ErrorResponse> {
+    Json(NOT_FOUND_JSON)
+}
+
+#[catch(500)]
+pub fn internal_sever_error() -> Json<ErrorResponse> {
+    Json(UNKNOWN_JSON)
 }
