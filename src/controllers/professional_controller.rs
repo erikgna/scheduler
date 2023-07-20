@@ -2,8 +2,8 @@ use diesel;
 use diesel::prelude::*;
 use crate::schema::professionals;
 
-use crate::models::professional_model::{NewProfessional, NewProfessionalInsert};
-use crate::{models::professional_model::Professional, db::establish_connection};
+use crate::models::professional_models::{NewProfessional, NewProfessionalInsert};
+use crate::{models::professional_models::Professional, db::establish_connection};
 
 impl Professional{
     pub fn insert_professional(professional: NewProfessional) -> Result<(), diesel::result::Error>{
