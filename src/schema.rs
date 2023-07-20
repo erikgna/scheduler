@@ -67,7 +67,7 @@ diesel::table! {
         id_service -> Int4,
         service_name -> Varchar,
         description -> Nullable<Text>,
-        images -> Nullable<Jsonb>,
+        images -> Nullable<Text>,
         price -> Numeric,
     }
 }

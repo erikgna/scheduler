@@ -40,7 +40,7 @@ pub struct NewUser {
 }
 
 #[derive(Insertable, PartialEq, Eq, Debug, Clone)]
-#[table_name = "users"]
+#[diesel(table_name = users)]
 pub struct NewUserInsert {
     pub first_name: String,
     pub last_name: String,

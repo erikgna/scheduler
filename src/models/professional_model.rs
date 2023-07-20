@@ -21,7 +21,7 @@ pub struct NewProfessional {
 }
 
 #[derive(Insertable, PartialEq, Eq, Debug, Clone, AsChangeset)]
-#[table_name = "professionals"]
+#[diesel(table_name = professionals)]
 pub struct NewProfessionalInsert {    
     pub name: String,
     pub specialization: String,
@@ -30,7 +30,6 @@ pub struct NewProfessionalInsert {
     pub photo_path: Option<String>,
 }
 
-// Implement a conversion function from `NewUser` to `NewUserInsert`
 impl From<NewProfessional> for NewProfessionalInsert {
     fn from(professional: NewProfessional) -> Self {
         NewProfessionalInsert {

@@ -14,7 +14,8 @@ extern crate serde_derive;
 use rocket::serde::json::Json;
 
 use crate::routes::routes::authorization::{login, register};
-use crate::routes::routes::professional::{get_professionals};
+use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional};
+use crate::routes::routes::service::{get_services, get_service, post_service, update_service, delete_service};
 use crate::error_response::error_responses::{
     ErrorResponse, NOT_FOUND_JSON, UNAUTHORIZED_JSON, UNKNOWN_JSON,
 };
@@ -29,7 +30,12 @@ pub mod error_response;
 #[rocket::launch]
 fn rocket() -> _ {        
     rocket::build()
-    .mount("/api/v1/", routes![register, login, get_professionals])    
+    .mount(
+        "/api/v1/", 
+        routes![register, login, 
+        get_professionals, get_professional, post_professional, update_professional, delete_professional, 
+        get_services, get_service, post_service, update_service, delete_service
+    ])    
     .register("/", catchers![unauthorized, not_found, internal_sever_error])
 }
 
