@@ -6,6 +6,8 @@ pub struct User {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
+    pub photo: String,
+    pub phone: String,
     pub password: String,
     pub token: Option<String>,
 }
@@ -37,6 +39,8 @@ pub struct NewUser {
     pub last_name: String,
     pub email: String,
     pub password: String,    
+    pub photo: String,
+    pub phone: String,
 }
 
 #[derive(Insertable, PartialEq, Eq, Debug, Clone)]
@@ -46,6 +50,8 @@ pub struct NewUserInsert {
     pub last_name: String,
     pub email: String,
     pub password: String,
+    pub photo: String,
+    pub phone: String,
 }
 
 // Implement a conversion function from `NewUser` to `NewUserInsert`
@@ -56,6 +62,8 @@ impl From<NewUser> for NewUserInsert {
             last_name: user.last_name,
             email: user.email,
             password: user.password,
+            phone: user.phone,
+            photo: user.photo,
         }
     }
 }

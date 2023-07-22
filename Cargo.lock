@@ -1685,6 +1685,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rocket-multipart-form-data"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a8148192183eb2a7c1438e603fb8db1d9020739776aecd11a4f821b578575c3"
+dependencies = [
+ "mime 0.3.17",
+ "multer",
+ "rocket 0.5.0-rc.3",
+ "tokio-util",
+]
+
+[[package]]
 name = "rocket_codegen"
 version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1786,12 +1798,14 @@ dependencies = [
  "r2d2-diesel",
  "rand 0.7.3",
  "rocket 0.5.0-rc.3",
+ "rocket-multipart-form-data",
  "rocket_codegen 0.5.0-rc.3",
  "rocket_contrib",
  "rust-argon2",
  "serde",
  "serde_derive",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -2168,6 +2182,7 @@ dependencies = [
  "libc",
  "mio 0.8.8",
  "num_cpus",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",

@@ -1,7 +1,9 @@
 use crate::models::user_models::{User, NewUser, UserLogin, UserToken, AuthorizedUser};
+use crate::utils::file_utils::save_file;
 use rocket::serde::json::Json;
-use rocket::http::Status;
+use rocket::http::{Status, ContentType};
 use rocket::response::{status::Created, status::Custom, status};
+use rocket_multipart_form_data::mime;
 
 #[post("/register", format = "application/json", data = "<new_user>")]
 pub fn register(new_user: Json<NewUser>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
@@ -29,8 +31,30 @@ pub fn login(user_login: Json<UserLogin>) -> Result<status::Custom<Json<UserToke
     }
 }
 
-#[get("/teste")]
-pub fn teste(auth: AuthorizedUser) -> &'static str {
-    print!("User ID: {}", auth.user_id);
-    "Hello there! I'm a string!"
+#[post("/upload", data = "<data>")]
+pub async fn upload_image(
+    content_type: &ContentType,
+    data: rocket::Data<'_>,
+    auth: AuthorizedUser
+) -> String {
+    let options = rocket_multipart_form_data::MultipartFormDataOptions::with_multipart_form_data_fields(vec![
+        rocket_multipart_form_data::MultipartFormDataField::file("photo")
+            .content_type_by_string(Some(mime::IMAGE_STAR))
+            .unwrap(),
+    ]);
+
+    let multipart_form_data = match rocket_multipart_form_data::MultipartFormData::parse(content_type, data, options).await {
+        Ok(data) => data,
+        Err(err) => {
+            return format!("Failed to parse form data: {}", err);
+        }
+    };
+
+    let photo = multipart_form_data.files.get("photo");
+    let response = save_file(photo).await;
+
+    let int_user_id = auth.user_id.parse::<i32>().unwrap();    
+    let _ = User::change_photo(response, int_user_id);
+
+    "Ok".to_string()    
 }
