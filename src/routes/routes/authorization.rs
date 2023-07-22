@@ -42,7 +42,7 @@ pub async fn upload_image(
             .content_type_by_string(Some(mime::IMAGE_STAR))
             .unwrap(),
     ]);
-
+    
     let multipart_form_data = match rocket_multipart_form_data::MultipartFormData::parse(content_type, data, options).await {
         Ok(data) => data,
         Err(err) => {

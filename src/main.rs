@@ -11,6 +11,7 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
+use rocket::fs::FileServer;
 use rocket::serde::json::Json;
 
 use crate::routes::routes::authorization::{login, register, upload_image};
@@ -33,10 +34,10 @@ pub mod error_response;
 pub mod utils;
 
 #[rocket::launch]
-fn rocket() -> _ {        
+fn rocket() -> _ {            
     rocket::build()
     .mount(
-        "/api/v1/", 
+        "/api/v1", 
         routes![register, login, upload_image,
         get_professionals, get_professional, post_professional, update_professional, delete_professional, 
         get_services, get_service, post_service, update_service, delete_service,
@@ -46,6 +47,7 @@ fn rocket() -> _ {
         get_notifications, get_notification, post_notification, update_notification, delete_notification,
         get_appointments, get_appointment, post_appointment, update_appointment, delete_appointment,
     ])    
+    .mount("/public", FileServer::from("uploads/"))
     .register("/", catchers![unauthorized, not_found, internal_sever_error])
 }
 
