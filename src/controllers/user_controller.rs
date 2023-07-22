@@ -10,6 +10,16 @@ use jsonwebtoken::{encode, Header, EncodingKey};
 use crate::{db::establish_connection, models::user_models::{User, NewUser, NewUserInsert, UserLogin, Claims}};
 
 impl User {
+    pub fn change_photo(photo_path: String, user_id: i32) -> Result<String, diesel::result::Error>{
+        let conn = &mut establish_connection();
+                
+        diesel::update(users::table.filter(users::id.eq(user_id)))
+            .set(users::photo.eq(photo_path))
+            .execute(conn)?;
+
+        Ok("Image saved successfully".to_string())
+    }    
+
     pub fn insert_user(user: NewUser) -> Result<(), diesel::result::Error> {
         let conn = &mut establish_connection();
     

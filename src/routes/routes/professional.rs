@@ -1,7 +1,7 @@
 use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::response::{status::Created, status::Custom};
-use crate::models::professional_model::{Professional, NewProfessional};
+use crate::models::professional_models::{Professional, NewProfessional};
 
 #[get("/professionals", format = "application/json")]
 pub fn get_professionals() -> Result<Json<Vec<Professional>>, Custom<&'static str>> {

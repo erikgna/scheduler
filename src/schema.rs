@@ -78,6 +78,8 @@ diesel::table! {
         email -> Varchar,
         first_name -> Varchar,
         last_name -> Varchar,
+        photo -> Varchar,
+        phone -> Varchar,
         password -> Varchar,
         token -> Nullable<Varchar>,
     }
