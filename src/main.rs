@@ -14,9 +14,9 @@ extern crate serde_derive;
 use rocket::fs::FileServer;
 use rocket::serde::json::Json;
 
-use crate::routes::routes::authorization::{login, register, upload_image};
-use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional};
-use crate::routes::routes::service::{get_services, get_service, post_service, update_service, delete_service};
+use crate::routes::routes::authorization::{login, register, upload_user_image};
+use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional, upload_professional_image};
+use crate::routes::routes::service::{get_services, get_service, post_service, update_service, delete_service, upload_service_images};
 use crate::routes::routes::service_history::{get_services_history, get_service_history, post_service_history, update_service_history, delete_service_history};
 use crate::routes::routes::review::{get_reviews, get_review, post_review, update_review, delete_review};
 use crate::routes::routes::promotion::{get_promotions, get_promotion, post_promotion, update_promotion, delete_promotion};
@@ -38,16 +38,16 @@ fn rocket() -> _ {
     rocket::build()
     .mount(
         "/api/v1", 
-        routes![register, login, upload_image,
-        get_professionals, get_professional, post_professional, update_professional, delete_professional, 
-        get_services, get_service, post_service, update_service, delete_service,
+        routes![register, login, upload_user_image,
+        get_professionals, get_professional, post_professional, update_professional, delete_professional, upload_professional_image,
+        get_services, get_service, post_service, update_service, delete_service, upload_service_images,
         get_services_history, get_service_history, post_service_history, update_service_history, delete_service_history,
         get_reviews, get_review, post_review, update_review, delete_review,
         get_promotions, get_promotion, post_promotion, update_promotion, delete_promotion,
         get_notifications, get_notification, post_notification, update_notification, delete_notification,
         get_appointments, get_appointment, post_appointment, update_appointment, delete_appointment,
     ])    
-    .mount("/public", FileServer::from("uploads/"))
+    .mount("/public", FileServer::from("public/"))
     .register("/", catchers![unauthorized, not_found, internal_sever_error])
 }
 

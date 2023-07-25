@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::models::user_models::{User, NewUser, UserLogin, UserToken, AuthorizedUser};
 use crate::utils::file_utils::save_file;
 use rocket::serde::json::Json;
@@ -32,7 +34,7 @@ pub fn login(user_login: Json<UserLogin>) -> Result<status::Custom<Json<UserToke
 }
 
 #[post("/upload", data = "<data>")]
-pub async fn upload_image(
+pub async fn upload_user_image(
     content_type: &ContentType,
     data: rocket::Data<'_>,
     auth: AuthorizedUser
@@ -51,9 +53,10 @@ pub async fn upload_image(
     };
 
     let photo = multipart_form_data.files.get("photo");
-    let response = save_file(photo).await;
-
     let int_user_id = auth.user_id.parse::<i32>().unwrap();    
+    
+    let photo_path = format!("{}/users/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), int_user_id);
+    let response = save_file(photo_path, photo).await;
     let _ = User::change_photo(response, int_user_id);
 
     "Ok".to_string()    

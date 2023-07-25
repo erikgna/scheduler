@@ -65,4 +65,16 @@ impl Service {
             }
         }
     }
+
+    pub fn change_photo(photo_path: String, id: i32) -> Result<String, diesel::result::Error> {
+        let conn = &mut establish_connection();
+    
+        // let joined_path = photo_path.join(","); // Join the elements with commas
+    
+        diesel::update(services::table.filter(services::id_service.eq(id)))
+            .set(services::images.eq(photo_path))
+            .execute(conn)?;
+    
+        Ok("Image saved successfully".to_string())
+    }
 }

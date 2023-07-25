@@ -69,4 +69,14 @@ impl Professional{
             }
         }
     }
+
+    pub fn change_photo(photo_path: String, id: i32) -> Result<String, diesel::result::Error>{
+        let conn = &mut establish_connection();
+                
+        diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
+            .set(professionals::photo_path.eq(photo_path))
+            .execute(conn)?;
+
+        Ok("Image saved successfully".to_string())
+    }    
 }

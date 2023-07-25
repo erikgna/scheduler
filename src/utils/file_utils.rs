@@ -1,10 +1,9 @@
-use std::io;
+use std::{io, fs};
 use std::io::ErrorKind;
 use std::path::Path;
 use rocket_multipart_form_data::FileField;
 use tokio::fs as async_fs;
 
-const UPLOAD_DIR: &str = "./uploads/";
 pub async fn copy_file(from: &Path, to: &Path) -> io::Result<()> {
     async_fs::copy(from, to).await?;    
 
@@ -18,7 +17,7 @@ pub async fn copy_file(from: &Path, to: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub async fn save_file(photo: Option<&Vec<FileField>>) -> String {
+pub async fn save_file(upload_path: String, photo: Option<&Vec<FileField>>) -> String {    
     if let Some(file_fields) = photo {
         let file_field = &file_fields[0];
         
@@ -37,18 +36,22 @@ pub async fn save_file(photo: Option<&Vec<FileField>>) -> String {
         };
 
         let new_file_name = format!("photo_{}.{}", chrono::Utc::now().timestamp(), file_extension);
-        let dest_path = Path::new(UPLOAD_DIR).join(&new_file_name);
+        let dest_path = Path::new(&upload_path).join(&new_file_name);
+
+        // Create the user's upload directory if it doesn't exist
+        if let Err(err) = fs::create_dir_all(&upload_path) {
+            return format!("Failed to create user upload directory: {}", err);
+        }
 
         match copy_file(path, &dest_path).await {
             Ok(_) => {                
                 return dest_path.to_string_lossy().to_string();
             }
             Err(error) => {                
-                
-                    return format!("Failed to copy the file: {}", error);       
+                return format!("Failed to copy the file: {}", error);       
             }
         }
     } else {                
-            return "Photo field not found in form data".to_string();        
+        return "Photo field not found in form data".to_string();        
     }
 }

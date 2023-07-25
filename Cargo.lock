@@ -1789,6 +1789,7 @@ name = "rust"
 version = "0.1.0"
 dependencies = [
  "bigdecimal",
+ "bytes",
  "chrono",
  "custom_derive",
  "diesel 2.1.0",
