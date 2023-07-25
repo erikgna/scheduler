@@ -1,2 +1,2 @@
-# password-handler
-My first Rust project, it's an API for handle passwords
+# Scheduler API
+My first Rust project, it's an API for scheduling
