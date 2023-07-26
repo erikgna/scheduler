@@ -31,4 +31,3 @@ chrono = { version = "0.4", features = ["serde"] }
 custom_derive ="0.1.7"
 jsonwebtoken = "8.3.0"
 tokio = { version = "1", features = ["full"] }
-bytes = "1.0"

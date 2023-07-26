@@ -47,7 +47,6 @@ pub fn delete_service(id: i32) -> Result<Json<&'static str>, Custom<&'static str
 }
 
 use rocket_multipart_form_data::mime;
-
 #[post("/service/upload/<id>", data = "<data>")]
 pub async fn upload_service_images(
     id: i32,
@@ -64,7 +63,15 @@ pub async fn upload_service_images(
         rocket_multipart_form_data::MultipartFormDataField::file("photo2")
             .content_type_by_string(Some(mime::IMAGE_STAR))
             .unwrap(),
-        // Add more fields as needed
+        rocket_multipart_form_data::MultipartFormDataField::file("photo3")
+            .content_type_by_string(Some(mime::IMAGE_STAR))
+            .unwrap(),
+        rocket_multipart_form_data::MultipartFormDataField::file("photo4")
+            .content_type_by_string(Some(mime::IMAGE_STAR))
+            .unwrap(),
+        rocket_multipart_form_data::MultipartFormDataField::file("photo5")
+            .content_type_by_string(Some(mime::IMAGE_STAR))
+            .unwrap()
     ]);
 
     let multipart_form_data = match rocket_multipart_form_data::MultipartFormData::parse(content_type, data, options).await {
@@ -74,19 +81,30 @@ pub async fn upload_service_images(
         }
     };
 
-    if let Some(file_fields) = multipart_form_data.files.get("photo") {
-        print!("{:?}", file_fields);
-    }
+    let photo_path = format!("{}/services/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id);
 
-    if let Some(file_fields) = multipart_form_data.files.get("photo1") {
-        print!("{:?}", file_fields);
-    }
+    let mut responses = Vec::new();
 
-    if let Some(file_fields) = multipart_form_data.files.get("photo2") {
-        print!("{:?}", file_fields);
-    }
+    let photo = multipart_form_data.files.get("photo");
+    responses.push(save_file(photo_path.clone(), photo).await);    
 
-    // Process other fields as needed
+    let photo1 = multipart_form_data.files.get("photo1");
+    responses.push(save_file(photo_path.clone(), photo1).await);
+
+    let photo2: Option<&Vec<rocket_multipart_form_data::FileField>> = multipart_form_data.files.get("photo2");
+    responses.push(save_file(photo_path.clone(), photo2).await);
+
+    let photo3 = multipart_form_data.files.get("photo3");
+    responses.push(save_file(photo_path.clone(), photo3).await);
+
+    let photo4 = multipart_form_data.files.get("photo4");
+    responses.push(save_file(photo_path.clone(), photo4).await);
+
+    let photo5 = multipart_form_data.files.get("photo5");
+    responses.push(save_file(photo_path.clone(), photo5).await);
+
+    let json_string = serde_json::to_string(&responses).unwrap();
+    let _ = Service::change_photo(json_string, id);
 
     "Ok".to_string()
 }
