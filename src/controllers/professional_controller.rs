@@ -70,13 +70,27 @@ impl Professional{
         }
     }
 
-    pub fn change_photo(photo_path: String, id: i32) -> Result<String, diesel::result::Error>{
+    pub fn change_photo(photo_path: String, id: i32) -> Result<(), diesel::result::Error>{
         let conn = &mut establish_connection();
-                
-        diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
-            .set(professionals::photo_path.eq(photo_path))
-            .execute(conn)?;
+        
+        conn.transaction(|conn| {
+            diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
+                .set(professionals::photo_path.eq(photo_path))
+                .execute(conn)?;
+            
+            Ok(())
+        })
+    }      
 
-        Ok("Image saved successfully".to_string())
-    }    
+    pub fn delete_photo(id: i32) -> Result<(), diesel::result::Error>{
+        let conn = &mut establish_connection();
+        
+        conn.transaction(|conn| {
+            diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
+                .set(professionals::photo_path.eq(""))
+                .execute(conn)?;
+            
+            Ok(())
+        })
+    } 
 }

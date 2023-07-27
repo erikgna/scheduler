@@ -18,6 +18,13 @@ impl Notification {
         notifications.load::<Notification>(conn)
     }
 
+    pub fn get_all_user_notifications(id: i32) -> Result<Vec<Notification>, diesel::result::Error> {
+        use crate::schema::notifications::dsl::*;
+        let conn = &mut establish_connection();
+
+        notifications.filter(id_user.eq(id)).load::<Notification>(conn)
+    }
+
     pub fn insert_notification(notification: NewNotification) -> Result<(), diesel::result::Error> {
         let conn = &mut establish_connection();
     

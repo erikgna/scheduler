@@ -3,8 +3,8 @@ use std::env;
 use rocket::serde::json::Json;
 use rocket::http::{Status, ContentType};
 use rocket::response::{status::Created, status::Custom};
-use crate::models::service_models::{Service, NewService};
-use crate::utils::file_utils::save_file;
+use crate::models::service_models::{Service, NewService, PhotoResponse};
+use crate::utils::file_utils::{save_file, delete_file};
 
 #[get("/services", format = "application/json")]
 pub fn get_services() -> Result<Json<Vec<Service>>, Custom<&'static str>> {
@@ -46,15 +46,15 @@ pub fn delete_service(id: i32) -> Result<Json<&'static str>, Custom<&'static str
     }
 }
 
-use rocket_multipart_form_data::mime;
+use rocket_multipart_form_data::{mime, MultipartFormDataError};
 #[post("/service/upload/<id>", data = "<data>")]
 pub async fn upload_service_images(
     id: i32,
     content_type: &ContentType,
     data: rocket::Data<'_>,
-) -> String {
+) -> Result<String, String> {
     let options = rocket_multipart_form_data::MultipartFormDataOptions::with_multipart_form_data_fields(vec![
-        rocket_multipart_form_data::MultipartFormDataField::file("photo")
+        rocket_multipart_form_data::MultipartFormDataField::file("photo0")
             .content_type_by_string(Some(mime::IMAGE_STAR))
             .unwrap(),
         rocket_multipart_form_data::MultipartFormDataField::file("photo1")
@@ -76,35 +76,74 @@ pub async fn upload_service_images(
 
     let multipart_form_data = match rocket_multipart_form_data::MultipartFormData::parse(content_type, data, options).await {
         Ok(data) => data,
+        Err(MultipartFormDataError::DataTooLargeError(max_size)) => {
+            return Err(format!("File size exceeds the limit of {} bytes", max_size));
+        }
         Err(err) => {
-            return format!("Failed to parse form data: {}", err);
+            return Err(format!("Failed to parse form data: {}", err));
         }
     };
 
     let photo_path = format!("{}/services/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id);
-
     let mut responses = Vec::new();
 
-    let photo = multipart_form_data.files.get("photo");
-    responses.push(save_file(photo_path.clone(), photo).await);    
+    for i in 0..6 {
+        let photo_key = format!("photo{}", i);
+        let photo = match multipart_form_data.files.get(photo_key.trim()) {
+            Some(file) => file,
+            None => { continue }
+        };
 
-    let photo1 = multipart_form_data.files.get("photo1");
-    responses.push(save_file(photo_path.clone(), photo1).await);
+        let response = save_file(photo_path.clone(), Some(photo)).await;
+        let status = match &response {
+            Ok(_) => "Ok".to_string(),
+            Err(_) => format!("No file"),
+        };
 
-    let photo2: Option<&Vec<rocket_multipart_form_data::FileField>> = multipart_form_data.files.get("photo2");
-    responses.push(save_file(photo_path.clone(), photo2).await);
+        responses.push(PhotoResponse {
+            photo_id: response.unwrap(),
+            status,
+        });
+    }
 
-    let photo3 = multipart_form_data.files.get("photo3");
-    responses.push(save_file(photo_path.clone(), photo3).await);
+    let json_string = serde_json::to_string(&responses).map_err(|err| format!("Failed to serialize responses: {}", err))?;
+    Service::change_photo(json_string.clone(), id).map_err(|err| format!("Failed to update the service with the new photo: {}", err))?;
 
-    let photo4 = multipart_form_data.files.get("photo4");
-    responses.push(save_file(photo_path.clone(), photo4).await);
+    Ok(json_string)
+}
 
-    let photo5 = multipart_form_data.files.get("photo5");
-    responses.push(save_file(photo_path.clone(), photo5).await);
+#[get("/service/delete/<id>/<filename>")]
+pub fn delete_service_file(id: i32, filename: String) -> Result<(), String> {   
+    let photo_path = format!("{}/services/{}/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id, filename);
 
-    let json_string = serde_json::to_string(&responses).unwrap();
-    let _ = Service::change_photo(json_string, id);
+    match Service::get_service(id) {
+        Ok(service) => {
+            let images_str = service.images.unwrap();
+            // Fazer o parse da string JSON para um vetor de objetos ImageItem
+            let mut images: Vec<PhotoResponse> = serde_json::from_str(&images_str).unwrap();
 
-    "Ok".to_string()
+            // Encontrar o índice do objeto que possui o filename desejado
+            let index = images.iter().position(|item| item.photo_id == filename);
+
+            // Verificar se o objeto foi encontrado e, se sim, removê-lo
+            if let Some(index) = index {
+                images.remove(index);
+            } else {
+                return Err(format!("File with filename {} not found in images", filename));
+            }
+
+            // Converter o vetor atualizado de volta para uma string JSON
+            let updated_images_str = serde_json::to_string(&images)
+                .map_err(|err| format!("Failed to convert images to JSON: {}", err))?;
+
+            delete_file(photo_path.clone()).map_err(|err| format!("Failed to update the service with the new photo: {}", err))?;
+                
+            if let Err(err) = Service::change_photo(updated_images_str.clone(), id) {
+                return Err(format!("Failed to delete the service photo: {}", err));
+            }                                                     
+
+            Ok(())
+        },
+        Err(_) => Err(format!("Failed to delete the file")),
+    }
 }

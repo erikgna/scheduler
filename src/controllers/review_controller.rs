@@ -18,6 +18,13 @@ impl Review {
         reviews.load::<Review>(conn)
     }
 
+    pub fn get_all_user_reviews(id: i32) -> Result<Vec<Review>, diesel::result::Error> {
+        use crate::schema::reviews::dsl::*;
+        let conn = &mut establish_connection();
+
+        reviews.filter(id_user.eq(id)).load::<Review>(conn)
+    }
+
     pub fn insert_review(review: NewReview) -> Result<(), diesel::result::Error> {
         let conn = &mut establish_connection();
     

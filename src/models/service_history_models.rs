@@ -6,6 +6,7 @@ use chrono::NaiveDateTime;
 pub struct ServiceHistory {
     pub id_record: i32,
     pub id_user: Option<i32>,
+    pub id_professional: Option<i32>,
     pub id_service: Option<i32>,
     pub date_time_service: NaiveDateTime,
     pub amount_paid: BigDecimal,
@@ -16,6 +17,7 @@ pub struct ServiceHistory {
 pub struct NewServiceHistory {    
     pub id_user: Option<i32>,
     pub id_service: Option<i32>,
+    pub id_professional: Option<i32>,
     pub date_time_service: NaiveDateTime,
     pub amount_paid: BigDecimal,
 }
@@ -25,6 +27,7 @@ pub struct NewServiceHistory {
 pub struct NewServiceHistoryInsert {
     pub id_user: Option<i32>,
     pub id_service: Option<i32>,
+    pub id_professional: Option<i32>,
     pub date_time_service: NaiveDateTime,
     pub amount_paid: BigDecimal,
 }
@@ -34,6 +37,7 @@ impl From<NewServiceHistory> for NewServiceHistoryInsert {
         NewServiceHistoryInsert {
             id_user: service_history.id_user,
             id_service: service_history.id_service,
+            id_professional: service_history.id_professional,
             date_time_service: service_history.date_time_service,
             amount_paid: service_history.amount_paid
         }

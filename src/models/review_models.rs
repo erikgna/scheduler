@@ -5,6 +5,7 @@ pub struct Review {
     pub id_review: i32,
     pub id_user: Option<i32>,
     pub id_professional: Option<i32>,
+    pub id_service: Option<i32>,
     pub comment: Option<String>,
     pub rating: Option<i32>,
 }
@@ -14,6 +15,7 @@ pub struct Review {
 pub struct NewReview {    
     pub id_user: Option<i32>,
     pub id_professional: Option<i32>,
+    pub id_service: Option<i32>,
     pub comment: Option<String>,
     pub rating: Option<i32>,    
 }
@@ -23,6 +25,7 @@ pub struct NewReview {
 pub struct NewReviewInsert {        
     pub id_user: Option<i32>,
     pub id_professional: Option<i32>,
+    pub id_service: Option<i32>,
     pub comment: Option<String>,
     pub rating: Option<i32>,
 }
@@ -32,6 +35,7 @@ impl From<NewReview> for NewReviewInsert {
         NewReviewInsert {
             id_user: review.id_user,
             id_professional: review.id_professional,
+            id_service: review.id_service,
             comment: review.comment,
             rating: review.rating,            
         }

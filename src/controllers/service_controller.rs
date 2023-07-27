@@ -1,4 +1,3 @@
-use diesel;
 use diesel::prelude::*;
 use crate::{schema::services, models::service_models::{Service, NewServiceInsert, NewService}};
 use crate::db::establish_connection;
@@ -66,13 +65,15 @@ impl Service {
         }
     }
 
-    pub fn change_photo(photo_path: String, id: i32) -> Result<String, diesel::result::Error> {
-        let conn = &mut establish_connection();        
-    
-        diesel::update(services::table.filter(services::id_service.eq(id)))
-            .set(services::images.eq(photo_path))
-            .execute(conn)?;
-    
-        Ok("Image saved successfully".to_string())
-    }
+    pub fn change_photo(photo_path: String, id: i32) -> Result<(), diesel::result::Error>{
+        let conn = &mut establish_connection();
+        
+        conn.transaction(|conn| {
+            diesel::update(services::table.filter(services::id_service.eq(id)))
+                .set(services::images.eq(photo_path))
+                .execute(conn)?;
+            
+            Ok(())
+        })
+    }    
 }
