@@ -15,7 +15,7 @@ use rocket::fs::FileServer;
 use rocket::serde::json::Json;
 
 use crate::routes::routes::authorization::{login, register, upload_user_image, delete_user_file, user_appointments};
-use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional, upload_professional_image, delete_professional_file};
+use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional};
 use crate::routes::routes::service::{get_services, get_service, post_service, update_service, delete_service, upload_service_images, delete_service_file};
 use crate::routes::routes::service_history::{get_services_history, get_service_history, post_service_history, update_service_history, delete_service_history};
 use crate::routes::routes::review::{get_reviews, get_review, post_review, update_review, delete_review};
@@ -39,7 +39,7 @@ fn rocket() -> _ {
     .mount(
         "/api/v1", 
         routes![register, login, upload_user_image, delete_user_file, user_appointments,
-        get_professionals, get_professional, post_professional, update_professional, delete_professional, upload_professional_image, delete_professional_file,
+        get_professionals, get_professional, post_professional, update_professional, delete_professional,
         get_services, get_service, post_service, update_service, delete_service, upload_service_images, delete_service_file,
         get_services_history, get_service_history, post_service_history, update_service_history, delete_service_history,
         get_reviews, get_review, post_review, update_review, delete_review,

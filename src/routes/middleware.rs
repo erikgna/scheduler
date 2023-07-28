@@ -20,6 +20,7 @@ impl<'r> FromRequest<'r> for AuthorizedUser {
                 Ok(claims) => {
                     Outcome::Success(AuthorizedUser {
                         user_id: claims.claims.id.to_string(),
+                        user_role: claims.claims.role,
                     })
                 }
                 Err(_) => Outcome::Failure((Status::Unauthorized, ())),

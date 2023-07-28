@@ -33,6 +33,13 @@ impl Service {
         services.load::<Service>(conn)
     }
 
+    pub fn get_all_professional_services(id: i32) -> Result<Vec<Service>, diesel::result::Error> {
+        use crate::schema::services::dsl::*;
+        let conn = &mut establish_connection();
+
+        services.filter(id_professional.eq(id)).load::<Service>(conn)
+    }
+
     pub fn update_service(id: i32, service: NewService) -> Result<(), diesel::result::Error> {
         use crate::schema::services::dsl::*;
         let conn = &mut establish_connection();        

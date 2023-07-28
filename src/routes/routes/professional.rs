@@ -1,11 +1,11 @@
-use std::env;
-
 use rocket::serde::json::Json;
-use rocket::http::{Status, ContentType};
+use rocket::http::Status;
 use rocket::response::{status::Created, status::Custom};
-use rocket_multipart_form_data::{mime, MultipartFormDataError};
+use crate::models::appointment_models::Appointment;
 use crate::models::professional_models::{Professional, NewProfessional};
-use crate::utils::file_utils::{save_file, delete_file};
+use crate::models::review_models::Review;
+use crate::models::service_history_models::ServiceHistory;
+use crate::models::service_models::Service;
 
 #[get("/professionals", format = "application/json")]
 pub fn get_professionals() -> Result<Json<Vec<Professional>>, Custom<&'static str>> {
@@ -47,58 +47,34 @@ pub fn delete_professional(id: i32) -> Result<Json<&'static str>, Custom<&'stati
     }
 }
 
-#[post("/professional/upload/<id>", data = "<data>")]
-pub async fn upload_professional_image(
-    id: i32,
-    content_type: &ContentType,
-    data: rocket::Data<'_>    
-) -> Result<(), String> {
-    let options = rocket_multipart_form_data::MultipartFormDataOptions::with_multipart_form_data_fields(vec![
-        rocket_multipart_form_data::MultipartFormDataField::file("photo")
-            .content_type_by_string(Some(mime::IMAGE_STAR))
-            .unwrap(),
-    ]);
-
-    let multipart_form_data = match rocket_multipart_form_data::MultipartFormData::parse(content_type, data, options).await {
-        Ok(data) => data,
-        Err(MultipartFormDataError::DataTooLargeError(max_size)) => {
-            return Err(format!("File size exceeds the limit of {} bytes", max_size));
-        }
-        Err(err) => {
-            return Err(format!("Failed to parse form data: {}", err));
-        }
-    };
-
-    let photo = match multipart_form_data.files.get("photo") {
-        Some(file) => file,
-        None => {
-            return Err("No photo file found in the form data".to_string());
-        }
-    };
-
-    let photo_path = format!("{}/professionals/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id);
-
-    match save_file(photo_path, Some(photo)).await {
-        Ok(response) => {
-            if let Err(err) = Professional::change_photo(response, id) {
-                return Err(format!("Failed to update the professional with the new photo: {}", err));
-            }
-            Ok(())
-        }
-        Err(err) => Err(format!("Failed to save the file: {}", err)),
+#[get("/professional/<id>/services", format = "application/json")]
+pub fn professional_services(id: i32) -> Result<Json<Vec<Service>>, Custom<&'static str>> {    
+    match Service::get_all_professional_services(id) {
+        Ok(services) => Ok(Json(services)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve services.")),
     }
 }
 
-#[get("/professional/delete/<id>/<filename>")]
-pub fn delete_professional_file(id: i32, filename: String) -> Result<(), String> {
-    let photo_path = format!("{}/professionals/{}/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id, filename);
-    match delete_file(photo_path.clone()){
-        Ok(_) => {
-            if let Err(err) = Professional::delete_photo(id) {
-                return Err(format!("Failed to delete the professional photo: {}", err));
-            }
-            Ok(())
-        }
-        Err(e) => Err(format!("Failed to delete the file: {}", e)),
+#[get("/professional/<id>/appointments", format = "application/json")]
+pub fn professional_appointments(id: i32) -> Result<Json<Vec<Appointment>>, Custom<&'static str>> {    
+    match Appointment::get_all_professional_appointments(id) {
+        Ok(appointments) => Ok(Json(appointments)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve appointments.")),
+    }
+}
+
+#[get("/professional/<id>/reviews", format = "application/json")]
+pub fn professional_reviews(id: i32) -> Result<Json<Vec<Review>>, Custom<&'static str>> {    
+    match Review::get_all_professional_reviews(id) {
+        Ok(reviews) => Ok(Json(reviews)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve reviews.")),
+    }
+}
+
+#[get("/professional/<id>/services-history", format = "application/json")]
+pub fn professional_services_history(id: i32) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
+    match ServiceHistory::get_all_professional_service_history(id) {
+        Ok(services_history) => Ok(Json(services_history)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve reviews.")),
     }
 }

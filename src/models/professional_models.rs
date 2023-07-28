@@ -3,41 +3,37 @@ use crate::schema::professionals;
 #[derive(Queryable, Serialize)]
 pub struct Professional {
     pub id: i32,
-    pub name: String,
+    pub id_user: i32,    
     pub specialization: String,
     pub description: Option<String>,
-    pub schedules: Option<String>,
-    pub photo_path: Option<String>,
+    pub schedules: Option<String>,    
 }
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct NewProfessional {
-    pub name: String,
+    pub id_user: i32,    
     pub specialization: String,
     pub description: Option<String>,
-    pub schedules: Option<String>,
-    pub photo_path: Option<String>,
+    pub schedules: Option<String>,    
 }
 
 #[derive(Insertable, PartialEq, Eq, Debug, Clone, AsChangeset)]
 #[diesel(table_name = professionals)]
 pub struct NewProfessionalInsert {    
-    pub name: String,
+    pub id_user: i32,    
     pub specialization: String,
     pub description: Option<String>,
-    pub schedules: Option<String>,
-    pub photo_path: Option<String>,
+    pub schedules: Option<String>,    
 }
 
 impl From<NewProfessional> for NewProfessionalInsert {
     fn from(professional: NewProfessional) -> Self {
         NewProfessionalInsert {
-            name: professional.name,
+            id_user: professional.id_user,
             specialization: professional.specialization,
             description: professional.description,
-            schedules: professional.schedules,
-            photo_path: professional.photo_path,
+            schedules: professional.schedules            
         }
     }
 }

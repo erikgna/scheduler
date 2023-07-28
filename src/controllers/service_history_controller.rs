@@ -42,6 +42,20 @@ impl ServiceHistory {
         service_history.filter(id_user.eq(id)).load::<ServiceHistory>(conn)
     }
 
+    pub fn get_all_professional_service_history(id: i32) -> Result<Vec<ServiceHistory>, diesel::result::Error> {
+        use crate::schema::service_history::dsl::*;
+        let conn = &mut establish_connection();
+
+        service_history.filter(id_professional.eq(id)).load::<ServiceHistory>(conn)
+    }
+
+    pub fn get_all_service_service_history(id: i32) -> Result<Vec<ServiceHistory>, diesel::result::Error> {
+        use crate::schema::service_history::dsl::*;
+        let conn = &mut establish_connection();
+
+        service_history.filter(id_service.eq(id)).load::<ServiceHistory>(conn)
+    }
+
     pub fn update_service_history(id: i32, service: NewServiceHistory) -> Result<(), diesel::result::Error> {
         use crate::schema::service_history::dsl::*;
         let conn = &mut establish_connection();        

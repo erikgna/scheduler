@@ -3,6 +3,9 @@ use std::env;
 use rocket::serde::json::Json;
 use rocket::http::{Status, ContentType};
 use rocket::response::{status::Created, status::Custom};
+use crate::models::appointment_models::Appointment;
+use crate::models::review_models::Review;
+use crate::models::service_history_models::ServiceHistory;
 use crate::models::service_models::{Service, NewService, PhotoResponse};
 use crate::utils::file_utils::{save_file, delete_file};
 
@@ -145,5 +148,29 @@ pub fn delete_service_file(id: i32, filename: String) -> Result<(), String> {
             Ok(())
         },
         Err(_) => Err(format!("Failed to delete the file")),
+    }
+}
+
+#[get("/service/<id>/appointments", format = "application/json")]
+pub fn service_appointments(id: i32) -> Result<Json<Vec<Appointment>>, Custom<&'static str>> {    
+    match Appointment::get_all_service_appointments(id) {
+        Ok(appointments) => Ok(Json(appointments)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve appointments.")),
+    }
+}
+
+#[get("/service/<id>/reviews", format = "application/json")]
+pub fn service_reviews(id: i32) -> Result<Json<Vec<Review>>, Custom<&'static str>> {    
+    match Review::get_all_service_reviews(id) {
+        Ok(reviews) => Ok(Json(reviews)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve reviews.")),
+    }
+}
+
+#[get("/service/<id>/services-history", format = "application/json")]
+pub fn service_services_history(id: i32) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
+    match ServiceHistory::get_all_service_service_history(id) {
+        Ok(services_history) => Ok(Json(services_history)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve services_history.")),
     }
 }

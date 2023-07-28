@@ -23,6 +23,13 @@ impl Professional{
         }
     }
     
+    pub fn get_user_professional(user_id: i32) -> Result<Professional, diesel::result::Error> {
+        use crate::schema::professionals::dsl::*;
+
+        let conn = &mut establish_connection();        
+        professionals.filter(id_user.eq(user_id)).first::<Professional>(conn)        
+    }
+
     pub fn get_professional(id: i32) -> Result<Professional, diesel::result::Error> {
         use crate::schema::professionals::dsl::*;
 
@@ -69,28 +76,4 @@ impl Professional{
             }
         }
     }
-
-    pub fn change_photo(photo_path: String, id: i32) -> Result<(), diesel::result::Error>{
-        let conn = &mut establish_connection();
-        
-        conn.transaction(|conn| {
-            diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
-                .set(professionals::photo_path.eq(photo_path))
-                .execute(conn)?;
-            
-            Ok(())
-        })
-    }      
-
-    pub fn delete_photo(id: i32) -> Result<(), diesel::result::Error>{
-        let conn = &mut establish_connection();
-        
-        conn.transaction(|conn| {
-            diesel::update(professionals::table.filter(professionals::id_professional.eq(id)))
-                .set(professionals::photo_path.eq(""))
-                .execute(conn)?;
-            
-            Ok(())
-        })
-    } 
 }

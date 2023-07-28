@@ -6,9 +6,14 @@ pub struct User {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
-    pub photo: String,
     pub phone: String,
+    pub address: String,
+    pub address_number: String,
+    pub city: String,
+    pub state: String,
     pub password: String,
+    pub role: i32,
+    pub photo: Option<String>,
     pub token: Option<String>,
 }
 
@@ -16,6 +21,7 @@ pub struct User {
 pub struct Claims {
     pub id: i32,        // ID do usuário
     pub email: String,  // Email do usuário
+    pub role: i32,
     pub exp: usize
 }
 
@@ -41,6 +47,11 @@ pub struct NewUser {
     pub password: String,    
     pub photo: String,
     pub phone: String,
+    pub address: String,
+    pub address_number: String,
+    pub state: String,
+    pub city: String,
+    pub role: i32,
 }
 
 #[derive(Insertable, PartialEq, Eq, Debug, Clone)]
@@ -52,6 +63,11 @@ pub struct NewUserInsert {
     pub password: String,
     pub photo: String,
     pub phone: String,
+    pub address: String,
+    pub address_number: String,
+    pub state: String,
+    pub city: String,
+    pub role: i32,
 }
 
 // Implement a conversion function from `NewUser` to `NewUserInsert`
@@ -64,10 +80,16 @@ impl From<NewUser> for NewUserInsert {
             password: user.password,
             phone: user.phone,
             photo: user.photo,
+            address: user.address,
+            address_number: user.address_number,
+            city: user.city,
+            state: user.state,
+            role: user.role,
         }
     }
 }
 
 pub struct AuthorizedUser {
     pub user_id: String,
+    pub user_role: i32,
 }

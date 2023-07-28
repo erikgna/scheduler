@@ -25,6 +25,20 @@ impl Appointment {
         appointments.filter(id_user.eq(id)).load::<Appointment>(conn)
     }
 
+    pub fn get_all_professional_appointments(id: i32) -> Result<Vec<Appointment>, diesel::result::Error> {
+        use crate::schema::appointments::dsl::*;
+        let conn = &mut establish_connection();
+
+        appointments.filter(id_professional.eq(id)).load::<Appointment>(conn)
+    }
+
+    pub fn get_all_service_appointments(id: i32) -> Result<Vec<Appointment>, diesel::result::Error> {
+        use crate::schema::appointments::dsl::*;
+        let conn = &mut establish_connection();
+
+        appointments.filter(id_service.eq(id)).load::<Appointment>(conn)
+    }
+
     pub fn insert_appointment(appointment: NewAppointment) -> Result<(), diesel::result::Error> {
         let conn = &mut establish_connection();
     

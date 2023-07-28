@@ -2,6 +2,7 @@ use std::env;
 
 use crate::models::appointment_models::Appointment;
 use crate::models::notification_models::Notification;
+use crate::models::professional_models::Professional;
 use crate::models::review_models::Review;
 use crate::models::service_history_models::ServiceHistory;
 use crate::models::user_models::{User, NewUser, UserLogin, UserToken, AuthorizedUser};
@@ -10,6 +11,44 @@ use rocket::serde::json::Json;
 use rocket::http::{Status, ContentType};
 use rocket::response::{status::Created, status::Custom, status};
 use rocket_multipart_form_data::{mime, MultipartFormDataError};
+
+#[derive(Serialize)]
+pub struct UserProfile {
+    user: User,
+    professional: Professional,
+}
+
+#[get("/professional-profile/<email>", format = "application/json")]
+pub fn professional_profile(email: String) -> Result<Json<UserProfile>, Custom<&'static str>> {    
+    match User::get_user_by_email(email) {
+        Ok(user) => {
+            let id = user.id;
+            match Professional::get_user_professional(id) {
+                Ok(professional) => {
+                    let user_profile = UserProfile { user, professional };
+                    Ok(Json(user_profile))
+                },
+                Err(_) => Err(Custom(Status::InternalServerError, "Failed to retrieve professional profile.")),
+            }
+        },
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed to retrieve user.")),
+    }
+}
+
+#[get("/user-profile", format = "application/json")]
+pub fn get_user(auth: AuthorizedUser) -> Result<Json<User>, Custom<&'static str>> {
+    let int_user_id = match auth.user_id.parse::<i32>() {
+        Ok(id) => id,
+        Err(_) => {
+            return Err(Custom(Status::InternalServerError, "Invalid user ID in the authorization header"));
+        }
+    };
+
+    match User::get_user(int_user_id) {
+        Ok(user) => Ok(Json(user)),
+        Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve user.")),
+    }
+}
 
 #[post("/register", format = "application/json", data = "<new_user>")]
 pub fn register(new_user: Json<NewUser>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
