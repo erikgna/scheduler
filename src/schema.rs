@@ -7,6 +7,7 @@ diesel::table! {
         id_professional -> Nullable<Int4>,
         id_service -> Nullable<Int4>,
         date_time_appointment -> Timestamp,
+        #[max_length = 50]
         appointment_status -> Varchar,
     }
 }
@@ -23,10 +24,13 @@ diesel::table! {
 diesel::table! {
     professionals (id_professional) {
         id_professional -> Int4,
+        #[max_length = 100]
         name -> Varchar,
+        #[max_length = 100]
         specialization -> Varchar,
         description -> Nullable<Text>,
         schedules -> Nullable<Text>,
+        #[max_length = 255]
         photo_path -> Nullable<Varchar>,
     }
 }
@@ -34,10 +38,12 @@ diesel::table! {
 diesel::table! {
     promotions (id_promotion) {
         id_promotion -> Int4,
+        #[max_length = 100]
         promotion_name -> Varchar,
         description -> Nullable<Text>,
         start_date -> Date,
         end_date -> Date,
+        #[max_length = 20]
         discount_code -> Nullable<Varchar>,
     }
 }
@@ -65,6 +71,7 @@ diesel::table! {
 diesel::table! {
     services (id_service) {
         id_service -> Int4,
+        #[max_length = 100]
         service_name -> Varchar,
         description -> Nullable<Text>,
         images -> Nullable<Jsonb>,
