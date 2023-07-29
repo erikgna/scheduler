@@ -6,10 +6,16 @@ use crate::models::professional_models::{Professional, NewProfessional};
 use crate::models::review_models::Review;
 use crate::models::service_history_models::ServiceHistory;
 use crate::models::service_models::Service;
+use crate::models::user_models::AuthorizedUser;
 
-#[get("/professionals", format = "application/json")]
-pub fn get_professionals() -> Result<Json<Vec<Professional>>, Custom<&'static str>> {
-    match Professional::get_all_professionals() {
+#[get("/professionals/<page>/<page_size>?<specialization>", format = "application/json")]
+pub fn get_professionals(
+    _auth: AuthorizedUser,  
+    page_size: i64, 
+    page: i64,
+    specialization: Option<String>
+) -> Result<Json<Vec<Professional>>, Custom<&'static str>> {
+    match Professional::get_all_professionals(page, page_size,specialization) {
         Ok(professionals) => Ok(Json(professionals)),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve professionals.")),
     }
@@ -24,15 +30,17 @@ pub fn get_professional(id: i32) -> Result<Json<Professional>, Custom<&'static s
 }
 
 #[post("/professional", format = "application/json", data = "<professional>")]
-pub fn post_professional(professional: Json<NewProfessional>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
-    match Professional::insert_professional(professional.into_inner()) {
+pub fn post_professional(professional: Json<NewProfessional>, auth: AuthorizedUser) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {    
+    let int_user_id = auth.user_id.parse::<i32>().unwrap_or(0);
+
+    match Professional::insert_professional(professional.into_inner(), int_user_id) {
         Ok(_) => Ok(Created::new("/professional").body(Json("Professional inserted successfully!"))),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed insert professional.")),
     }
 }
 
 #[patch("/professional/<id>", format = "application/json", data = "<professional>")]
-pub fn update_professional(id: i32, professional: Json<NewProfessional>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
+pub fn update_professional(id: i32, professional: Json<NewProfessional>, _auth: AuthorizedUser) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
     match Professional::update_professional(id, professional.into_inner()) {
         Ok(_) => Ok(Created::new("/professional/1").body(Json("Professional updated successfully!"))),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed insert professional.")),
@@ -40,7 +48,7 @@ pub fn update_professional(id: i32, professional: Json<NewProfessional>) -> Resu
 }
 
 #[delete("/professional/<id>")]
-pub fn delete_professional(id: i32) -> Result<Json<&'static str>, Custom<&'static str>> {    
+pub fn delete_professional(id: i32, _auth: AuthorizedUser) -> Result<Json<&'static str>, Custom<&'static str>> {    
     match Professional::delete_professional(id) {
         Ok(_) => Ok(Json("Professional deleted successfully!")),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve professional.")),
@@ -72,7 +80,7 @@ pub fn professional_reviews(id: i32) -> Result<Json<Vec<Review>>, Custom<&'stati
 }
 
 #[get("/professional/<id>/services-history", format = "application/json")]
-pub fn professional_services_history(id: i32) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
+pub fn professional_services_history(id: i32, _auth: AuthorizedUser) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
     match ServiceHistory::get_all_professional_service_history(id) {
         Ok(services_history) => Ok(Json(services_history)),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve reviews.")),

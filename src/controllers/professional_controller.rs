@@ -6,10 +6,11 @@ use crate::models::professional_models::{NewProfessional, NewProfessionalInsert}
 use crate::{models::professional_models::Professional, db::establish_connection};
 
 impl Professional{
-    pub fn insert_professional(professional: NewProfessional) -> Result<(), diesel::result::Error>{
+    pub fn insert_professional(professional: NewProfessional, id: i32) -> Result<(), diesel::result::Error>{
         let conn = &mut establish_connection();
         
-        let professional_insert = NewProfessionalInsert::from(professional);
+        let mut professional_insert = NewProfessionalInsert::from(professional);                
+        professional_insert.id_user = id;
 
         match diesel::insert_into(professionals::table)
             .values(&professional_insert)
@@ -37,11 +38,23 @@ impl Professional{
         professionals.filter(id_professional.eq(id)).first::<Professional>(conn)        
     }
 
-    pub fn get_all_professionals() -> Result<Vec<Professional>, diesel::result::Error> {
+    pub fn get_all_professionals(
+        page: i64,
+        page_size: i64,
+        specialization_filter: Option<String>,
+    ) -> Result<Vec<Professional>, diesel::result::Error> {
         use crate::schema::professionals::dsl::*;
-        let conn = &mut establish_connection();
 
-        professionals.load::<Professional>(conn)
+        let conn = &mut establish_connection();        
+        let mut query = professionals.into_boxed();
+        
+        if let Some(spec_filter) = specialization_filter {
+            query = query.filter(specialization.eq(spec_filter));
+        }        
+
+        let records = query.offset(page).limit(page_size).load::<Professional>(conn)?;
+      
+        Ok(records)  
     }
 
     pub fn update_professional(id: i32, professional: NewProfessional) -> Result<(), diesel::result::Error> {

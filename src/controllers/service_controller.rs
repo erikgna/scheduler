@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 use crate::{schema::services, models::service_models::{Service, NewServiceInsert, NewService}};
 use crate::db::establish_connection;
@@ -26,11 +27,33 @@ impl Service {
         services.filter(id_service.eq(id)).first::<Service>(conn)        
     }
 
-    pub fn get_all_services() -> Result<Vec<Service>, diesel::result::Error> {
+    pub fn get_all_services(
+        page_size: i64, 
+        page: i64,
+        service_name_filter: Option<String>,
+        price_filter: Option<String>,
+        duration_filter: Option<String>
+    ) -> Result<Vec<Service>, diesel::result::Error> {
         use crate::schema::services::dsl::*;
         let conn = &mut establish_connection();
 
-        services.load::<Service>(conn)
+        let mut query = services.into_boxed();
+        
+        if let Some(service_name_f) = service_name_filter {
+            query = query.filter(service_name.eq(service_name_f));            
+        }        
+
+        if let Some(price_f) = price_filter {            
+            query = query.filter(price.eq(price_f.parse::<BigDecimal>().unwrap()));
+        }
+
+        if let Some(duration_f) = duration_filter {            
+            query = query.filter(duration.eq(duration_f.parse::<i32>().unwrap_or(1)));
+        }
+
+        let records = query.offset(page).limit(page_size).load::<Service>(conn)?;
+      
+        Ok(records)
     }
 
     pub fn get_all_professional_services(id: i32) -> Result<Vec<Service>, diesel::result::Error> {

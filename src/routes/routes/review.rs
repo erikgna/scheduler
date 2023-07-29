@@ -3,9 +3,14 @@ use rocket::http::Status;
 use rocket::response::{status::Created, status::Custom};
 use crate::models::review_models::{Review, NewReview};
 
-#[get("/reviews", format = "application/json")]
-pub fn get_reviews() -> Result<Json<Vec<Review>>, Custom<&'static str>> {
-    match Review::get_all_reviews() {
+#[get("/reviews/<page>/<page_size>?<comment>&<rating>", format = "application/json")]
+pub fn get_reviews(
+    page_size: i64, 
+    page: i64,
+    comment: Option<String>,
+    rating: Option<String>
+) -> Result<Json<Vec<Review>>, Custom<&'static str>> {
+    match Review::get_all_reviews(page, page_size, comment, rating) {
         Ok(reviews) => Ok(Json(reviews)),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve reviews.")),
     }

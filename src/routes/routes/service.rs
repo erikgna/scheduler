@@ -7,11 +7,18 @@ use crate::models::appointment_models::Appointment;
 use crate::models::review_models::Review;
 use crate::models::service_history_models::ServiceHistory;
 use crate::models::service_models::{Service, NewService, PhotoResponse};
+use crate::models::user_models::AuthorizedUser;
 use crate::utils::file_utils::{save_file, delete_file};
 
-#[get("/services", format = "application/json")]
-pub fn get_services() -> Result<Json<Vec<Service>>, Custom<&'static str>> {
-    match Service::get_all_services() {
+#[get("/services/<page>/<page_size>?<service_name>&<price>&<duration>", format = "application/json")]
+pub fn get_services(
+    page_size: i64, 
+    page: i64,
+    service_name: Option<String>,
+    price: Option<String>,
+    duration: Option<String>
+) -> Result<Json<Vec<Service>>, Custom<&'static str>> {
+    match Service::get_all_services(page, page_size, service_name, price, duration) {
         Ok(services) => Ok(Json(services)),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve services.")),
     }
@@ -26,7 +33,7 @@ pub fn get_service(id: i32) -> Result<Json<Service>, Custom<&'static str>> {
 }
 
 #[post("/service", format = "application/json", data = "<service>")]
-pub fn post_service(service: Json<NewService>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
+pub fn post_service(service: Json<NewService>, _auth: AuthorizedUser) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
     match Service::insert_service(service.into_inner()) {
         Ok(_) => Ok(Created::new("/service").body(Json("Service inserted successfully!"))),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed insert service.")),
@@ -34,7 +41,7 @@ pub fn post_service(service: Json<NewService>) -> Result<Created<Json<&'static s
 }
 
 #[patch("/service/<id>", format = "application/json", data = "<service>")]
-pub fn update_service(id: i32, service: Json<NewService>) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
+pub fn update_service(id: i32, service: Json<NewService>, _auth: AuthorizedUser) -> Result<Created<Json<&'static str>>, Custom<&'static str>> {
     match Service::update_service(id, service.into_inner()) {
         Ok(_) => Ok(Created::new("/service/1").body(Json("Service updated successfully!"))),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed insert service.")),
@@ -42,7 +49,7 @@ pub fn update_service(id: i32, service: Json<NewService>) -> Result<Created<Json
 }
 
 #[delete("/service/<id>")]
-pub fn delete_service(id: i32) -> Result<Json<&'static str>, Custom<&'static str>> {    
+pub fn delete_service(id: i32, _auth: AuthorizedUser) -> Result<Json<&'static str>, Custom<&'static str>> {    
     match Service::delete_service(id) {
         Ok(_) => Ok(Json("Service deleted successfully!")),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve service.")),
@@ -55,6 +62,7 @@ pub async fn upload_service_images(
     id: i32,
     content_type: &ContentType,
     data: rocket::Data<'_>,
+    _auth: AuthorizedUser
 ) -> Result<String, String> {
     let options = rocket_multipart_form_data::MultipartFormDataOptions::with_multipart_form_data_fields(vec![
         rocket_multipart_form_data::MultipartFormDataField::file("photo0")
@@ -116,7 +124,7 @@ pub async fn upload_service_images(
 }
 
 #[get("/service/delete/<id>/<filename>")]
-pub fn delete_service_file(id: i32, filename: String) -> Result<(), String> {   
+pub fn delete_service_file(id: i32, filename: String, _auth: AuthorizedUser) -> Result<(), String> {   
     let photo_path = format!("{}/services/{}/{}", env::var("PUBLIC_PATH").unwrap_or("public".to_string()), id, filename);
 
     match Service::get_service(id) {
@@ -168,7 +176,7 @@ pub fn service_reviews(id: i32) -> Result<Json<Vec<Review>>, Custom<&'static str
 }
 
 #[get("/service/<id>/services-history", format = "application/json")]
-pub fn service_services_history(id: i32) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
+pub fn service_services_history(id: i32, _auth: AuthorizedUser) -> Result<Json<Vec<ServiceHistory>>, Custom<&'static str>> {    
     match ServiceHistory::get_all_service_service_history(id) {
         Ok(services_history) => Ok(Json(services_history)),
         Err(_) => Err(Custom(Status::InternalServerError, "Failed retrieve services_history.")),

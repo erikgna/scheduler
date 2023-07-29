@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use diesel;
 use diesel::prelude::*;
 use crate::{schema::appointments, models::appointment_models::{Appointment, NewAppointment, NewAppointmentInsert}};
@@ -11,11 +12,28 @@ impl Appointment {
         appointments.filter(id_appointment.eq(id)).first::<Appointment>(conn)        
     }
 
-    pub fn get_all_appointments() -> Result<Vec<Appointment>, diesel::result::Error> {
+    pub fn get_all_appointments(
+        page_size: i64, 
+        page: i64,
+        date_time_appointment_filter: Option<String>,
+        appointment_status_filter: Option<String>
+    ) -> Result<Vec<Appointment>, diesel::result::Error> {
         use crate::schema::appointments::dsl::*;
         let conn = &mut establish_connection();
 
-        appointments.load::<Appointment>(conn)
+        let mut query = appointments.into_boxed();
+        
+        if let Some(date_time_appointment_f) = date_time_appointment_filter {
+            query = query.filter(date_time_appointment.le(NaiveDateTime::parse_from_str(&date_time_appointment_f, "%Y-%m-%d").unwrap()));            
+        }        
+
+        if let Some(appointment_status_f) = appointment_status_filter {            
+            query = query.filter(appointment_status.eq(appointment_status_f));
+        }
+
+        let records = query.offset(page).limit(page_size).load::<Appointment>(conn)?;
+      
+        Ok(records)  
     }
 
     pub fn get_all_user_appointments(id: i32) -> Result<Vec<Appointment>, diesel::result::Error> {

@@ -11,11 +11,28 @@ impl Review {
         reviews.filter(id_review.eq(id)).first::<Review>(conn)        
     }
 
-    pub fn get_all_reviews() -> Result<Vec<Review>, diesel::result::Error> {
+    pub fn get_all_reviews(
+        page_size: i64, 
+        page: i64,
+        comment_filter: Option<String>,
+        rating_filter: Option<String>
+    ) -> Result<Vec<Review>, diesel::result::Error> {
         use crate::schema::reviews::dsl::*;
         let conn = &mut establish_connection();
 
-        reviews.load::<Review>(conn)
+        let mut query = reviews.into_boxed();
+        
+        if let Some(comment_f) = comment_filter {
+            query = query.filter(comment.eq(comment_f));
+        }        
+
+        if let Some(rating_f) = rating_filter {            
+            query = query.filter(rating.eq(rating_f.parse::<i32>().unwrap_or(1)));
+        }
+
+        let records = query.offset(page).limit(page_size).load::<Review>(conn)?;
+      
+        Ok(records)
     }
 
     pub fn get_all_user_reviews(id: i32) -> Result<Vec<Review>, diesel::result::Error> {

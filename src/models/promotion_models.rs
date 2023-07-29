@@ -1,6 +1,12 @@
 use chrono::NaiveDate;
 use crate::schema::promotions;
 
+#[derive(Serialize)]
+pub struct PromotionsResponse {
+    pub total_docs: i64,
+    pub result: Vec<Promotion>,
+}
+
 #[derive(Queryable, Serialize)]
 pub struct Promotion {
     pub id_promotion: i32,

@@ -11,8 +11,7 @@ pub struct Professional {
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct NewProfessional {
-    pub id_user: i32,    
+pub struct NewProfessional {   
     pub specialization: String,
     pub description: Option<String>,
     pub schedules: Option<String>,    
@@ -30,7 +29,7 @@ pub struct NewProfessionalInsert {
 impl From<NewProfessional> for NewProfessionalInsert {
     fn from(professional: NewProfessional) -> Self {
         NewProfessionalInsert {
-            id_user: professional.id_user,
+            id_user: 0,
             specialization: professional.specialization,
             description: professional.description,
             schedules: professional.schedules            

@@ -1,3 +1,5 @@
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
 use diesel;
 use diesel::prelude::*;
 use crate::db::establish_connection;
@@ -28,11 +30,28 @@ impl ServiceHistory {
         service_history.filter(id_service.eq(id)).first::<ServiceHistory>(conn)        
     }
 
-    pub fn get_all_services_history() -> Result<Vec<ServiceHistory>, diesel::result::Error> {
+    pub fn get_all_services_history(
+        page_size: i64, 
+        page: i64,
+        date_time_service_filter: Option<String>,
+        amount_paid_filter: Option<String>
+    ) -> Result<Vec<ServiceHistory>, diesel::result::Error> {
         use crate::schema::service_history::dsl::*;
         let conn = &mut establish_connection();
 
-        service_history.load::<ServiceHistory>(conn)
+        let mut query = service_history.into_boxed();
+        
+        if let Some(date_time_service_f) = date_time_service_filter {
+            query = query.filter(date_time_service.le(NaiveDateTime::parse_from_str(&date_time_service_f, "%Y-%m-%d").unwrap()));            
+        }        
+
+        if let Some(amount_paid_f) = amount_paid_filter {            
+            query = query.filter(amount_paid.eq(amount_paid_f.parse::<BigDecimal>().unwrap()));
+        }
+
+        let records = query.offset(page).limit(page_size).load::<ServiceHistory>(conn)?;
+      
+        Ok(records)
     }
 
     pub fn get_all_user_service_history(id: i32) -> Result<Vec<ServiceHistory>, diesel::result::Error> {
