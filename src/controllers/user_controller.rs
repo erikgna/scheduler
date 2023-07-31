@@ -10,6 +10,44 @@ use jsonwebtoken::{encode, Header, EncodingKey};
 use crate::{db::establish_connection, models::user_models::{User, NewUser, NewUserInsert, UserLogin, Claims}};
 
 impl User {
+    pub fn get_user(user_id: i32) -> Result<User, diesel::result::Error> {
+        use crate::schema::users::dsl::*;
+
+        let conn = &mut establish_connection();        
+        users.filter(id.eq(user_id)).first::<User>(conn)
+    }
+
+    pub fn get_user_by_email(user_email: String) -> Result<User, diesel::result::Error> {
+        use crate::schema::users::dsl::*;
+
+        let conn = &mut establish_connection();        
+        users.filter(email.eq(user_email)).first::<User>(conn)
+    }
+
+    pub fn change_photo(photo_path: String, user_id: i32) -> Result<(), diesel::result::Error>{
+        let conn = &mut establish_connection();
+        
+        conn.transaction(|conn| {
+            diesel::update(users::table.filter(users::id.eq(user_id)))
+                .set(users::photo.eq(photo_path))
+                .execute(conn)?;
+            
+            Ok(())
+        })
+    }
+
+    pub fn delete_photo(user_id: i32) -> Result<(), diesel::result::Error>{
+        let conn = &mut establish_connection();
+        
+        conn.transaction(|conn| {
+            diesel::update(users::table.filter(users::id.eq(user_id)))
+                .set(users::photo.eq(""))
+                .execute(conn)?;
+            
+            Ok(())
+        })
+    } 
+
     pub fn insert_user(user: NewUser) -> Result<(), diesel::result::Error> {
         let conn = &mut establish_connection();
     
@@ -53,6 +91,7 @@ impl User {
                 let token_data = Claims {
                     id: user.id,
                     email: user.email.clone(),
+                    role: user.role.clone(),
                     exp: 1844674407
                 };
     

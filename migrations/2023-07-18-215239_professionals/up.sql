@@ -1,8 +1,7 @@
 CREATE TABLE professionals (
     id_professional SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    id_user INTEGER NOT NULL,
     specialization VARCHAR(100) NOT NULL,
     description TEXT,
-    schedules TEXT,
-    photo_path VARCHAR(255)
+    schedules TEXT
 );

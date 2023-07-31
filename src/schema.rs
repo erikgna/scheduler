@@ -16,6 +16,7 @@ diesel::table! {
     notifications (id_notification) {
         id_notification -> Int4,
         id_user -> Nullable<Int4>,
+        id_professional -> Nullable<Int4>,
         message -> Text,
         date_time_sent -> Timestamp,
     }
@@ -24,14 +25,10 @@ diesel::table! {
 diesel::table! {
     professionals (id_professional) {
         id_professional -> Int4,
-        #[max_length = 100]
-        name -> Varchar,
-        #[max_length = 100]
+        id_user -> Int4,
         specialization -> Varchar,
         description -> Nullable<Text>,
         schedules -> Nullable<Text>,
-        #[max_length = 255]
-        photo_path -> Nullable<Varchar>,
     }
 }
 
@@ -53,6 +50,7 @@ diesel::table! {
         id_review -> Int4,
         id_user -> Nullable<Int4>,
         id_professional -> Nullable<Int4>,
+        id_service -> Nullable<Int4>,
         comment -> Nullable<Text>,
         rating -> Nullable<Int4>,
     }
@@ -62,6 +60,7 @@ diesel::table! {
     service_history (id_record) {
         id_record -> Int4,
         id_user -> Nullable<Int4>,
+        id_professional -> Nullable<Int4>,
         id_service -> Nullable<Int4>,
         date_time_service -> Timestamp,
         amount_paid -> Numeric,
@@ -71,11 +70,12 @@ diesel::table! {
 diesel::table! {
     services (id_service) {
         id_service -> Int4,
-        #[max_length = 100]
+        id_professional -> Nullable<Int4>,
         service_name -> Varchar,
         description -> Nullable<Text>,
-        images -> Nullable<Jsonb>,
+        images -> Nullable<Text>,
         price -> Numeric,
+        duration -> Int4,
     }
 }
 
@@ -85,7 +85,14 @@ diesel::table! {
         email -> Varchar,
         first_name -> Varchar,
         last_name -> Varchar,
+        phone -> Varchar,
+        address -> Varchar,
+        address_number -> Varchar,
+        city -> Varchar,
+        state -> Varchar,
         password -> Varchar,
+        role -> Int4,
+        photo -> Nullable<Varchar>,
         token -> Nullable<Varchar>,
     }
 }
@@ -93,11 +100,15 @@ diesel::table! {
 diesel::joinable!(appointments -> professionals (id_professional));
 diesel::joinable!(appointments -> services (id_service));
 diesel::joinable!(appointments -> users (id_user));
+diesel::joinable!(notifications -> professionals (id_professional));
 diesel::joinable!(notifications -> users (id_user));
 diesel::joinable!(reviews -> professionals (id_professional));
+diesel::joinable!(reviews -> services (id_service));
 diesel::joinable!(reviews -> users (id_user));
+diesel::joinable!(service_history -> professionals (id_professional));
 diesel::joinable!(service_history -> services (id_service));
 diesel::joinable!(service_history -> users (id_user));
+diesel::joinable!(services -> professionals (id_professional));
 
 diesel::allow_tables_to_appear_in_same_query!(
     appointments,
