@@ -11,8 +11,15 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
+extern crate rocket_cors;
+
 use rocket::fs::FileServer;
 use rocket::serde::json::Json;
+use rocket::http::Method; // 1.
+use rocket_cors::{
+    AllowedHeaders, AllowedOrigins, Error, // 2.
+    Cors, CorsOptions // 3.
+};
 
 use crate::routes::routes::authorization::{login, register, upload_user_image, delete_user_file, user_appointments, user_notifications, user_reviews, user_service_history, professional_profile, get_user};
 use crate::routes::routes::professional::{get_professionals, get_professional, post_professional, update_professional, delete_professional, professional_services, professional_appointments, professional_reviews, professional_services_history};
@@ -35,7 +42,18 @@ pub mod utils;
 
 #[rocket::launch]
 fn rocket() -> _ {            
-    rocket::build()
+    let allowed_origins = AllowedOrigins::all();
+
+    let cors = CorsOptions {
+        allowed_origins,       
+        allowed_headers: AllowedHeaders::all(),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()
+    .unwrap();    
+
+    rocket::build()    
     .mount(
         "/api/v1", 
         routes![register, login, upload_user_image, delete_user_file, user_appointments, professional_profile, get_user, user_notifications, user_reviews, user_service_history,
@@ -48,7 +66,8 @@ fn rocket() -> _ {
         get_appointments, get_appointment, post_appointment, update_appointment, delete_appointment,
     ])    
     .mount("/public", FileServer::from("public/"))
-    .register("/", catchers![unauthorized, not_found, internal_sever_error])
+    .attach(cors)
+    .register("/", catchers![unauthorized, not_found, internal_sever_error])   
 }
 
 #[catch(401)]

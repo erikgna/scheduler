@@ -7,7 +7,6 @@ diesel::table! {
         id_professional -> Nullable<Int4>,
         id_service -> Nullable<Int4>,
         date_time_appointment -> Timestamp,
-        #[max_length = 50]
         appointment_status -> Varchar,
     }
 }
@@ -35,12 +34,10 @@ diesel::table! {
 diesel::table! {
     promotions (id_promotion) {
         id_promotion -> Int4,
-        #[max_length = 100]
         promotion_name -> Varchar,
         description -> Nullable<Text>,
         start_date -> Date,
         end_date -> Date,
-        #[max_length = 20]
         discount_code -> Nullable<Varchar>,
     }
 }
